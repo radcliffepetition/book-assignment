@@ -2,82 +2,127 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Simple Book Reader</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cozy Book Reader</title>
 
 <style>
-/* ---------- THEME VARIABLES ---------- */
+/* ---------- COZY THEME ---------- */
 :root {
-  --bg: #f4f1ea;
-  --page: #ffffff;
-  --text: #222;
+  --bg: #f3efe7;
+  --book: #fffaf2;
+  --text: #2b2b2b;
+  --accent: #b08968;
   --shadow: rgba(0,0,0,0.2);
 }
 
 body.dark {
-  --bg: #1c1c1c;
-  --page: #2a2a2a;
-  --text: #f0f0f0;
+  --bg: #1e1b18;
+  --book: #2b2622;
+  --text: #f3f0eb;
+  --accent: #d4a373;
   --shadow: rgba(0,0,0,0.6);
 }
 
 /* ---------- GLOBAL ---------- */
 body {
   margin: 0;
-  height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font-family: Georgia, serif;
+  font-family: "Georgia", serif;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  transition: background 0.3s, color 0.3s;
+  transition: background 0.4s, color 0.4s;
 }
 
-/* ---------- THEME SWITCH ---------- */
+/* ---------- TOP BAR ---------- */
+.top-bar {
+  width: 100%;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress {
+  flex: 1;
+  height: 6px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
 .theme-toggle {
-  position: absolute;
-  top: 16px;
-  right: 16px;
   cursor: pointer;
-  font-size: 14px;
   padding: 6px 10px;
   border-radius: 6px;
-  background: var(--page);
+  background: var(--book);
   box-shadow: 0 2px 6px var(--shadow);
+  font-size: 14px;
 }
 
-/* ---------- BOOK ---------- */
+/* ---------- BOOK AREA ---------- */
+.reader {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .book {
-  perspective: 2000px;
+  perspective: 2500px;
+  display: flex;
 }
 
+/* ---------- COVER ---------- */
+.cover {
+  width: 380px;
+  height: 520px;
+  background: linear-gradient(135deg, #7f5539, #9c6644);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  border-radius: 6px;
+  box-shadow: 0 12px 30px var(--shadow);
+  cursor: pointer;
+}
+
+/* ---------- PAGES ---------- */
 .page {
-  width: 420px;
-  height: 560px;
-  background: var(--page);
+  width: 380px;
+  height: 520px;
+  background: var(--book);
   box-shadow: 0 10px 30px var(--shadow);
-  border-radius: 4px;
-  padding: 40px;
+  padding: 36px;
   box-sizing: border-box;
-  transform-origin: left center;
-  transition: transform 0.8s ease;
-  position: relative;
-}
-
-.page.turn {
-  transform: rotateY(-160deg);
-}
-
-.page-content {
-  font-size: 18px;
   line-height: 1.6;
+  font-size: 17px;
+}
+
+.left {
+  border-radius: 6px 0 0 6px;
+}
+
+.right {
+  border-radius: 0 6px 6px 0;
 }
 
 /* ---------- CONTROLS ---------- */
 .controls {
-  margin-top: 20px;
+  margin: 20px 0 8px;
 }
 
 button {
@@ -86,79 +131,93 @@ button {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  background: var(--page);
+  background: var(--book);
   box-shadow: 0 2px 6px var(--shadow);
 }
 
 /* ---------- FOOTER ---------- */
 footer {
-  position: absolute;
-  bottom: 8px;
   font-size: 10px;
   opacity: 0.5;
+  margin-bottom: 8px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</div>
+<div class="top-bar">
+  <div class="progress">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+  <div class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</div>
+</div>
 
-<div class="book">
-  <div class="page" id="page">
-    <div class="page-content" id="content"></div>
+<div class="reader">
+  <div class="cover" id="cover" onclick="openBook()">
+    The Quiet Hearth<br><span style="font-size:16px;">A Cozy Tale</span>
+  </div>
+
+  <div class="book" id="book" style="display:none;">
+    <div class="page left" id="leftPage"></div>
+    <div class="page right" id="rightPage"></div>
   </div>
 </div>
 
 <div class="controls">
-  <button onclick="prevPage()">◀ Previous</button>
-  <button onclick="nextPage()">Next ▶</button>
+  <button onclick="prev()">◀ Previous</button>
+  <button onclick="next()">Next ▶</button>
 </div>
 
 <footer>made by nick</footer>
 
 <script>
 /* ---------- BOOK CONTENT ----------
-   Easy to change later:
-   Each item is ONE page.
+Each TWO entries = one open spread
 ---------------------------------- */
-const book = [
-  "Chapter 1\n\nIt was a quiet morning when the town woke up to something unusual. The air felt different, like the world was holding its breath.",
-  "Chapter 2\n\nAs the sun rose higher, footsteps echoed through the empty streets. Someone was coming — and nothing would be the same.",
-  "Chapter 3\n\nBy nightfall, the truth could no longer be ignored. The story had begun, whether anyone was ready or not."
+const pages = [
+  "It was a cold evening, and the fire cracked softly in the hearth.",
+  "A mug of tea steamed nearby as the house settled into silence.",
+
+  "Outside, the wind whispered through the trees.",
+  "Inside, time slowed down just enough to breathe.",
+
+  "Some stories are loud and fast.",
+  "Others are meant to be read slowly, by warm light."
 ];
 
-let currentPage = 0;
-const pageEl = document.getElementById("page");
-const contentEl = document.getElementById("content");
+let index = 0;
 
-contentEl.innerText = book[currentPage];
+const leftPage = document.getElementById("leftPage");
+const rightPage = document.getElementById("rightPage");
+const progress = document.getElementById("progress");
 
-function nextPage() {
-  if (currentPage >= book.length - 1) return;
-
-  pageEl.classList.add("turn");
-
-  setTimeout(() => {
-    currentPage++;
-    contentEl.innerText = book[currentPage];
-    pageEl.classList.remove("turn");
-  }, 400);
+function render() {
+  leftPage.innerText = pages[index] || "";
+  rightPage.innerText = pages[index + 1] || "";
+  progress.style.width = ((index + 2) / pages.length) * 100 + "%";
 }
 
-function prevPage() {
-  if (currentPage <= 0) return;
-
-  pageEl.classList.add("turn");
-
-  setTimeout(() => {
-    currentPage--;
-    contentEl.innerText = book[currentPage];
-    pageEl.classList.remove("turn");
-  }, 400);
+function next() {
+  if (index + 2 < pages.length) {
+    index += 2;
+    render();
+  }
 }
 
-/* ---------- THEME ---------- */
+function prev() {
+  if (index - 2 >= 0) {
+    index -= 2;
+    render();
+  }
+}
+
+function openBook() {
+  document.getElementById("cover").style.display = "none";
+  document.getElementById("book").style.display = "flex";
+  render();
+}
+
 function toggleTheme() {
   document.body.classList.toggle("dark");
 }
