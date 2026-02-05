@@ -1,55 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cozy Book Reader</title>
 
 <style>
-/* ---------- COZY THEME ---------- */
 :root {
   --bg: #f3efe7;
-  --book: #fffaf2;
+  --paper: #fffaf2;
   --text: #2b2b2b;
   --accent: #b08968;
-  --shadow: rgba(0,0,0,0.2);
+  --shadow: rgba(0,0,0,0.25);
 }
 
 body.dark {
   --bg: #1e1b18;
-  --book: #2b2622;
+  --paper: #2b2622;
   --text: #f3f0eb;
   --accent: #d4a373;
   --shadow: rgba(0,0,0,0.6);
 }
 
-/* ---------- GLOBAL ---------- */
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Georgia", serif;
+  font-family: Georgia, serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: background 0.4s, color 0.4s;
+  transition: background 0.4s;
 }
 
 /* ---------- TOP BAR ---------- */
 .top-bar {
   width: 100%;
   padding: 12px 20px;
-  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 12px;
+  box-sizing: border-box;
 }
 
 .progress {
   flex: 1;
   height: 6px;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0,0,0,0.15);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -64,23 +62,18 @@ body {
 .theme-toggle {
   cursor: pointer;
   padding: 6px 10px;
+  background: var(--paper);
   border-radius: 6px;
-  background: var(--book);
   box-shadow: 0 2px 6px var(--shadow);
-  font-size: 14px;
 }
 
-/* ---------- BOOK AREA ---------- */
+/* ---------- READER ---------- */
 .reader {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.book {
   perspective: 2500px;
-  display: flex;
 }
 
 /* ---------- COVER ---------- */
@@ -89,22 +82,26 @@ body {
   height: 520px;
   background: linear-gradient(135deg, #7f5539, #9c6644);
   color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 14px 40px var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   font-size: 28px;
-  font-weight: bold;
-  border-radius: 6px;
-  box-shadow: 0 12px 30px var(--shadow);
   cursor: pointer;
 }
 
-/* ---------- PAGES ---------- */
+/* ---------- BOOK ---------- */
+.book {
+  display: none;
+  position: relative;
+}
+
 .page {
   width: 380px;
   height: 520px;
-  background: var(--book);
+  background: var(--paper);
   box-shadow: 0 10px 30px var(--shadow);
   padding: 36px;
   box-sizing: border-box;
@@ -120,9 +117,20 @@ body {
   border-radius: 0 6px 6px 0;
 }
 
+/* ---------- TURN ANIMATION ---------- */
+.turn {
+  animation: turnPage 0.6s ease;
+}
+
+@keyframes turnPage {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(-90deg); }
+  100% { transform: rotateY(0deg); }
+}
+
 /* ---------- CONTROLS ---------- */
 .controls {
-  margin: 20px 0 8px;
+  margin: 18px 0 6px;
 }
 
 button {
@@ -131,7 +139,7 @@ button {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  background: var(--book);
+  background: var(--paper);
   box-shadow: 0 2px 6px var(--shadow);
 }
 
@@ -139,7 +147,7 @@ button {
 footer {
   font-size: 10px;
   opacity: 0.5;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 </style>
 </head>
@@ -155,18 +163,19 @@ footer {
 
 <div class="reader">
   <div class="cover" id="cover" onclick="openBook()">
-    The Quiet Hearth<br><span style="font-size:16px;">A Cozy Tale</span>
+    The Quiet Hearth<br>
+    <span style="font-size:16px;">A Cozy Tale</span>
   </div>
 
-  <div class="book" id="book" style="display:none;">
+  <div class="book" id="book">
     <div class="page left" id="leftPage"></div>
     <div class="page right" id="rightPage"></div>
   </div>
 </div>
 
 <div class="controls">
-  <button onclick="prev()">◀ Previous</button>
-  <button onclick="next()">Next ▶</button>
+  <button onclick="prevPage()">◀ Previous</button>
+  <button onclick="nextPage()">Next ▶</button>
 </div>
 
 <footer>made by nick</footer>
@@ -191,31 +200,43 @@ let index = 0;
 const leftPage = document.getElementById("leftPage");
 const rightPage = document.getElementById("rightPage");
 const progress = document.getElementById("progress");
+const book = document.getElementById("book");
 
-function render() {
+function renderPages() {
   leftPage.innerText = pages[index] || "";
   rightPage.innerText = pages[index + 1] || "";
   progress.style.width = ((index + 2) / pages.length) * 100 + "%";
 }
 
-function next() {
+function animateTurn() {
+  book.classList.add("turn");
+  setTimeout(() => book.classList.remove("turn"), 600);
+}
+
+function nextPage() {
   if (index + 2 < pages.length) {
-    index += 2;
-    render();
+    animateTurn();
+    setTimeout(() => {
+      index += 2;
+      renderPages();
+    }, 300);
   }
 }
 
-function prev() {
+function prevPage() {
   if (index - 2 >= 0) {
-    index -= 2;
-    render();
+    animateTurn();
+    setTimeout(() => {
+      index -= 2;
+      renderPages();
+    }, 300);
   }
 }
 
 function openBook() {
   document.getElementById("cover").style.display = "none";
-  document.getElementById("book").style.display = "flex";
-  render();
+  book.style.display = "flex";
+  renderPages();
 }
 
 function toggleTheme() {
