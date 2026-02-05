@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simple Book Reader</title>
+
+<style>
+/* ---------- THEME VARIABLES ---------- */
+:root {
+  --bg: #f4f1ea;
+  --page: #ffffff;
+  --text: #222;
+  --shadow: rgba(0,0,0,0.2);
+}
+
+body.dark {
+  --bg: #1c1c1c;
+  --page: #2a2a2a;
+  --text: #f0f0f0;
+  --shadow: rgba(0,0,0,0.6);
+}
+
+/* ---------- GLOBAL ---------- */
+body {
+  margin: 0;
+  height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Georgia, serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ---------- THEME SWITCH ---------- */
+.theme-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--page);
+  box-shadow: 0 2px 6px var(--shadow);
+}
+
+/* ---------- BOOK ---------- */
+.book {
+  perspective: 2000px;
+}
+
+.page {
+  width: 420px;
+  height: 560px;
+  background: var(--page);
+  box-shadow: 0 10px 30px var(--shadow);
+  border-radius: 4px;
+  padding: 40px;
+  box-sizing: border-box;
+  transform-origin: left center;
+  transition: transform 0.8s ease;
+  position: relative;
+}
+
+.page.turn {
+  transform: rotateY(-160deg);
+}
+
+.page-content {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* ---------- CONTROLS ---------- */
+.controls {
+  margin-top: 20px;
+}
+
+button {
+  padding: 8px 14px;
+  margin: 0 6px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--page);
+  box-shadow: 0 2px 6px var(--shadow);
+}
+
+/* ---------- FOOTER ---------- */
+footer {
+  position: absolute;
+  bottom: 8px;
+  font-size: 10px;
+  opacity: 0.5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</div>
+
+<div class="book">
+  <div class="page" id="page">
+    <div class="page-content" id="content"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="prevPage()">◀ Previous</button>
+  <button onclick="nextPage()">Next ▶</button>
+</div>
+
+<footer>made by nick</footer>
+
+<script>
+/* ---------- BOOK CONTENT ----------
+   Easy to change later:
+   Each item is ONE page.
+---------------------------------- */
+const book = [
+  "Chapter 1\n\nIt was a quiet morning when the town woke up to something unusual. The air felt different, like the world was holding its breath.",
+  "Chapter 2\n\nAs the sun rose higher, footsteps echoed through the empty streets. Someone was coming — and nothing would be the same.",
+  "Chapter 3\n\nBy nightfall, the truth could no longer be ignored. The story had begun, whether anyone was ready or not."
+];
+
+let currentPage = 0;
+const pageEl = document.getElementById("page");
+const contentEl = document.getElementById("content");
+
+contentEl.innerText = book[currentPage];
+
+function nextPage() {
+  if (currentPage >= book.length - 1) return;
+
+  pageEl.classList.add("turn");
+
+  setTimeout(() => {
+    currentPage++;
+    contentEl.innerText = book[currentPage];
+    pageEl.classList.remove("turn");
+  }, 400);
+}
+
+function prevPage() {
+  if (currentPage <= 0) return;
+
+  pageEl.classList.add("turn");
+
+  setTimeout(() => {
+    currentPage--;
+    contentEl.innerText = book[currentPage];
+    pageEl.classList.remove("turn");
+  }, 400);
+}
+
+/* ---------- THEME ---------- */
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+}
+</script>
+
+</body>
+</html>
